@@ -128,6 +128,7 @@ void make()
                         picx--;
                         }
                      break;
+
         case RIGHT : if(nowx==(whereX-3+(longx*2))){prxy(45,20,"You can't go there(RIGHT)       ");gotoxy(nowx,nowy);}
                      else{
                         nowx=nowx+2;
@@ -135,6 +136,7 @@ void make()
                         picx++;
                         }
                      break;
+
         case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);}
                      else {
                          nowy=nowy-1;
@@ -150,18 +152,35 @@ void make()
                      picy++;
                     }
                      break;
+                    // '*' 그리기
+        case '1'   : picture[picy][picx]='*';
+                     putch('*');
+                     otoxy(nowx,nowy);
+                     break;
+                    // '0' 그리기
+        case '2'   : picture[picy][picx]='0';
+                     putch('0');
+                     gotoxy(nowx,nowy);
+                     break;
+                    // 'o' 그리기
+        case '3'   : picture[picy][picx]='o';
+                     putch('o');
+                     gotoxy(nowx,nowy);
+                     break;
+                    // 공백 그리기
+        case '4'   : picture[picy][picx]=' ';
+                     putch(' ');
+                     gotoxy(nowx,nowy);
+                     break;
 
-        case '1'   :
-
-        case '2'   :
-
-        case '3'   :
-
-        case 'q'   : 
+        case 'q'   : filesave(nowx,nowy); // 저장 후 종료
+                     exit(0);
+                     break;
 
         case 'x'   : exit(0);
-		case 's'   : 
-        case '4'   :
+
+		case 's'   : filesave(nowx,nowy); // 저장
+                     break;
 
 
         default    : gotoxy(nowx,nowy);
