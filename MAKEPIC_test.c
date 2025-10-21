@@ -17,7 +17,8 @@ void gotoxy(int x, int y) {
 }
 
 void textcolor(int color) {
-    // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시.
+    printf("\033[%dm", color + 30);
+    fflush(stdout);
 }
 
 int getch(void) {
@@ -134,9 +135,21 @@ void make()
                         picx++;
                         }
                      break;
-        case UP    : 
+        case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);}
+                     else {
+                         nowy=nowy-1;
+                         gotoxy(nowx,nowy);
+                         picy--;
+                        }
+                     break;
 
-        case DOWN  : 
+        case DOWN  : if(nowy==(whereY+longy-1)){prxy(45,20,"You can't go there(DOWN)      ");gotoxy(nowx,nowy);}
+                     else {
+                     nowy=nowy+1;
+                     gotoxy(nowx,nowy);
+                     picy++;
+                    }
+                     break;
 
         case '1'   :
 
