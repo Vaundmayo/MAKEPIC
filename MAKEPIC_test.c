@@ -17,7 +17,7 @@ void gotoxy(int x, int y) {
 }
 
 void textcolor(int color) {
-    printf("\033[%dm", color + 30);
+    printf("\033[%dm", color + 82);
     fflush(stdout);
 }
 
@@ -155,7 +155,7 @@ void make()
                     // '*' 그리기
         case '1'   : picture[picy][picx]='*';
                      putch('*');
-                     otoxy(nowx,nowy);
+                     gotoxy(nowx,nowy);
                      break;
                     // '0' 그리기
         case '2'   : picture[picy][picx]='0';
@@ -269,9 +269,10 @@ void mon() /* 메뉴 화면 출력 */
  	prxy(48,11," z . move down");
  	prxy(48,12," a . move left");
  	prxy(48,13," d . move right");
- 	prxy(48,14," s . save");
- 	prxy(48,15," q . save & exit");
- 	prxy(48,16," x . exit");
+    prxy(48,14," r . reset screen");  // 그림 초기화
+ 	prxy(48,15," s . save");
+ 	prxy(48,16," q . save & exit");
+ 	prxy(48,17," x . exit");
      textcolor(15);
 }
 void cls(void)
