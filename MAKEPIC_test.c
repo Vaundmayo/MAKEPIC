@@ -18,6 +18,27 @@ void gotoxy(int x, int y) {
 
 void textcolor(int color) {
     // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시.
+    switch(color) {
+        case 9:
+        printf("\033[31m"); // color = 9일때 빨강색
+        break;
+
+        case 10:
+        printf("\033[32m"); // color = 10일때 초록색
+        break;
+
+        case 11:
+        printf("\033[33m"); // color = 11일때 노랑색
+        break;
+
+        case 15:
+        printf("\033[34m"); // color = 15일때 파랑색
+        break;
+
+        default:
+        printf("\033[37m"); // 그 외 흰색
+    }
+    fflush(stdout);
 }
 
 int getch(void) {
