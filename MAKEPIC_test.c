@@ -214,12 +214,14 @@ void filewrite1()
      sprintf(buff,"%s",filename);
      if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
      putc('{',fp);
+     putc('\n',fp);
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            /* 복구 */
+            fprintf(fp, "'%c',", picture[tempy][tempx]); // fprintf로 ,까지 저장
         }
+        putc('\n',fp);
      }
      putc('}',fp);putc(';',fp);
      fclose(fp);
@@ -236,12 +238,14 @@ void filewrite2()
      sprintf(buff,"%s",filename);
      if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
      putc('{',fp);
+     putc('\n',fp);
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            /* 복구 */
+            putc(picture[tempy][tempx], fp); // putc로 그림만 저장
         }
+        putc('\n',fp);
      }
      putc('}',fp);putc(';',fp);
 	 fclose(fp);
