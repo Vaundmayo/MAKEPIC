@@ -17,7 +17,7 @@ void gotoxy(int x, int y) {
 }
 
 void textcolor(int color) {
-    // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시. 
+    // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시.
 }
 
 int getch(void) {
@@ -127,6 +127,7 @@ void make()
                         picx--;
                         }
                      break;
+
         case RIGHT : if(nowx==(whereX-3+(longx*2))){prxy(45,20,"You can't go there(RIGHT)       ");gotoxy(nowx,nowy);}
                      else{
                         nowx=nowx+2;
@@ -134,22 +135,72 @@ void make()
                         picx++;
                         }
                      break;
-        case UP    : 
 
-        case DOWN  : 
+        case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);}
+                     else {
+                         nowy=nowy-1;
+                         gotoxy(nowx,nowy);
+                         picy--;
+                        }
+                     break;
 
-        case '1'   :
+        case DOWN  : if(nowy==(whereY+longy-1)){prxy(45,20,"You can't go there(DOWN)      ");gotoxy(nowx,nowy);}
+                     else {
+                     nowy=nowy+1;
+                     gotoxy(nowx,nowy);
+                     picy++;
+                    }
+                     break;
+                    // '*' 그리기
+        case '1'   : picture[picy][picx]='*';
+                     putch('*');
+                     gotoxy(nowx,nowy);
+                     break;
+                    // '0' 그리기
+        case '2'   : picture[picy][picx]='0';
+                     putch('0');
+                     gotoxy(nowx,nowy);
+                     break;
+                    // 'o' 그리기
+        case '3'   : picture[picy][picx]='o';
+                     putch('o');
+                     gotoxy(nowx,nowy);
+                     break;
+                    // 공백 그리기
+        case '4'   : picture[picy][picx]=' ';
+                     putch(' ');
+                     gotoxy(nowx,nowy);
+                     break;
 
-        case '2'   :
-
-        case '3'   :
-
-        case 'q'   : 
+        case 'q'   : filesave(nowx,nowy); // 저장 후 종료
+                     exit(0);
+                     break;
 
         case 'x'   : exit(0);
-		case 's'   : 
-        case '4'   :
 
+		case 's'   : filesave(nowx,nowy); // 저장
+                     break;
+        case 'r'   : {int tempx, tempy; // 'r' (그림 초기화)
+                
+                     // picture 배열의 모두 공백으로 변경
+                     for(tempy=0; tempy<longy; tempy++) {
+                     for(tempx=0; tempx<longx; tempx++) {
+                             picture[tempy][tempx] = ' ';
+                         }
+                     }
+                
+                     cls(); // 화면 지우기
+                     mon(); // 메뉴, 격자 다시 그리기
+                    
+                     // 배열, 커서 위치 초기화
+                     nowx=whereX-1;
+                     nowy=whereY;
+                     picx=0;
+                     picy=0;
+                     gotoxy(nowx,nowy); // 커서 시작 위치로 이동
+                     prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
+                     }
+                     break;
 
         default    : gotoxy(nowx,nowy);
                      /*putch(go);*/
@@ -182,12 +233,14 @@ void filewrite1()
      sprintf(buff,"%s",filename);
      if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
      putc('{',fp);
+     putc('\n',fp);
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            /* 복구 */
+            fprintf(fp, "'%c'", picture[tempy][tempx]); // fprintf로 '저장
         }
+        putc('\n',fp);
      }
      putc('}',fp);putc(';',fp);
      fclose(fp);
@@ -204,12 +257,14 @@ void filewrite2()
      sprintf(buff,"%s",filename);
      if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
      putc('{',fp);
+     putc('\n',fp);
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            /* 복구 */
+            putc(picture[tempy][tempx], fp); // putc로 그림만 저장
         }
+        putc('\n',fp);
      }
      putc('}',fp);putc(';',fp);
 	 fclose(fp);
@@ -237,9 +292,10 @@ void mon() /* 메뉴 화면 출력 */
  	prxy(48,11," z . move down");
  	prxy(48,12," a . move left");
  	prxy(48,13," d . move right");
- 	prxy(48,14," s . save");
- 	prxy(48,15," q . save & exit");
- 	prxy(48,16," x . exit");
+    prxy(48,14," r . reset screen");  // 그림 초기화
+ 	prxy(48,15," s . save");
+ 	prxy(48,16," q . save & exit");
+ 	prxy(48,17," x . exit");
      textcolor(15);
 }
 void cls(void)
