@@ -18,6 +18,27 @@ void gotoxy(int x, int y) {
 
 void textcolor(int color) {
     // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시.
+    switch(color) {
+        case 9:
+        printf("\033[31m"); // color = 9일때 빨강색으로 변경
+        break;
+
+        case 10:
+        printf("\033[32m"); // color = 10일때 초록색으로 변경
+        break;
+
+        case 11:
+        printf("\033[33m"); // color = 11일때 노랑색으로 변경
+        break;
+
+        case 15:
+        printf("\033[34m"); // color = 15일때 파랑색으로 변경
+        break;
+
+        default:
+        printf("\033[37m"); // 기본색은 흰색
+    }
+    fflush(stdout);
 }
 
 int getch(void) {
@@ -291,11 +312,42 @@ void mon() /* 메뉴 화면 출력 */
     tempy=myy;
     for(x=whereX;x<myx;x=x+2)
     {
-        /* 복구 */ 
+        /*
+          화면 x좌표를 picture의 열 인덱스로 변경
+          - 그림판 시작점(whereX)으로부터의 거리 계산 : x - whereX
+          - 한 셀 폭이 2칸이므로 /2 -> c = 0,1,2,3,...로 열 인덱스로 변경
+        */
+        int c = (x - whereX) / 2;
+
+        /*
+          열의 모든 행을 위에서 아래로 출력
+          - picture[y][c]이 공백이면 화면에 ','로 표시
+        */ 
+        for(y = 0; y < longy; y++)
+        {
+            char m = picture[y][c]; //picture 2차원 배열
+
+            // 빈칸을 화면상 ','로 표시
+            if(m == ' ')
+            {
+                m = ',';
+            }
+
+            /*
+              커서 위치 지정 
+              - 행 : whereY(3)부터 아래로 한칸씩 내려감
+              - 열 : x는 2칸 간격 -> 초기 정렬 맞춤을 위해 x-1로 열 간격 유지
+            */
+            gotoxy(x-1, whereY + y);
+            // 해당 위치에 문자 출력(빈칸이면 ',' 출력)
+            putch(m);
+        }
     }
-         textcolor(11);
+
+    // 메뉴화면
+    textcolor(11);
  	prxy(48,5,"--- M E N U ---");
-     textcolor(10);
+    textcolor(10);
  	prxy(48,6," 1 . put \"*\"");
  	prxy(48,7," 2 . put \"0\"");
  	prxy(48,8," 3 . put \"o\"");
@@ -304,11 +356,10 @@ void mon() /* 메뉴 화면 출력 */
  	prxy(48,11," z . move down");
  	prxy(48,12," a . move left");
  	prxy(48,13," d . move right");
-    prxy(48,14," r . reset screen");  // 그림 초기화
- 	prxy(48,15," s . save");
- 	prxy(48,16," q . save & exit");
- 	prxy(48,17," x . exit");
-     textcolor(15);
+ 	prxy(48,14," s . save");
+ 	prxy(48,15," q . save & exit");
+ 	prxy(48,16," x . exit");
+    textcolor(15);
 }
 void cls(void)
 {
