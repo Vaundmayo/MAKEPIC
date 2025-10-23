@@ -101,10 +101,22 @@ int main()
 	textcolor(9);
 	prxy(25,3," P I C T U R E   M A K E E R ");
 	textcolor(11);
-	prxy(45,10,"How many count for x(1~20):");
-	scanf("%d",&longx);
-    prxy(45,11,"How many count for y(1~20):");
-	scanf("%d",&longy);
+    while(1){
+        prxy(45,10,"How many count for x(1~20):");
+	    scanf("%d",&longx);
+        prxy(45,12,"                                 "); // 오류 메시지 지우기
+        prxy(45,11,"How many count for y(1~20):");
+	    scanf("%d",&longy);
+        if(longx >= 1 && longx <= 20 && longy >= 1 && longy <= 20){ // 범위 초과시 오류 메시지
+            break;
+        }
+        else {
+            prxy(45,12,"Invalid number. Please try again.");
+            prxy(45,10,"How many count for x(1~20):     "); // 입력란 초기화
+            prxy(45,11,"How many count for y(1~20):     ");
+        }
+    }
+	
     /*lastxy=longx*longy;*/
     textcolor(15);
     cls();
