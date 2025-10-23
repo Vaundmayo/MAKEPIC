@@ -181,27 +181,27 @@ void make()
 
 		case 's'   : filesave(nowx,nowy); // 저장
                      break;
-        case 'r' :  {int tempx, tempy; // 'r' (그림 초기화)
+        case 'r'   : {int tempx, tempy; // 'r' (그림 초기화)
                 
-                    // picture 배열의 모두 공백으로 변경
-                    for(tempy=0; tempy<longy; tempy++) {
-                    for(tempx=0; tempx<longx; tempx++) {
-                            picture[tempy][tempx] = ' ';
-                        }
-                    }
+                     // picture 배열의 모두 공백으로 변경
+                     for(tempy=0; tempy<longy; tempy++) {
+                     for(tempx=0; tempx<longx; tempx++) {
+                             picture[tempy][tempx] = ' ';
+                         }
+                     }
                 
-                    cls(); // 화면 지우기
-                    mon(); // 메뉴, 격자 다시 그리기
+                     cls(); // 화면 지우기
+                     mon(); // 메뉴, 격자 다시 그리기
                     
-                    // 배열, 커서 위치 초기화
-                    nowx=whereX-1;
-                    nowy=whereY;
-                    picx=0;
-                    picy=0;
-                    gotoxy(nowx,nowy); // 커서 시작 위치로 이동
-                    prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
-                    }
-                    break;
+                     // 배열, 커서 위치 초기화
+                     nowx=whereX-1;
+                     nowy=whereY;
+                     picx=0;
+                     picy=0;
+                     gotoxy(nowx,nowy); // 커서 시작 위치로 이동
+                     prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
+                     }
+                     break;
 
         default    : gotoxy(nowx,nowy);
                      /*putch(go);*/
@@ -239,7 +239,7 @@ void filewrite1()
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            fprintf(fp, "'%c,'", picture[tempy][tempx]); // fprintf로 ,까지 저장
+            fprintf(fp, "'%c'", picture[tempy][tempx]); // fprintf로 '저장
         }
         putc('\n',fp);
      }
