@@ -82,6 +82,7 @@ void filewrite1(void);
 void filewrite2(void);
 void prxy(int x,int y,char *msg);
 void cls(void);
+int fileload(char* filename, int format);
 
 char picture[25][25]=
    {{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
@@ -116,25 +117,67 @@ int main()
     FILE *fp;
     int allxy[101],lastxy;
     char readline,ch,filename,sel;
+    char last_filename[100];
+    int last_format = 0;
+    int loaded = 0;
     cls();
-	textcolor(10);
-	prxy(10,7,"You can make pictures with \"*,0,o\"");
-	textcolor(9);
-	prxy(25,3," P I C T U R E   M A K E E R ");
-	textcolor(11);
-    while(1){
-        prxy(45,10,"How many count for x(1~20):");
-	    scanf("%d",&longx);
-        prxy(45,12,"                                 "); // 오류 메시지 지우기
-        prxy(45,11,"How many count for y(1~20):");
-	    scanf("%d",&longy);
-        if(longx >= 1 && longx <= 20 && longy >= 1 && longy <= 20){ // 범위 초과시 오류 메시지
-            break;
+
+    fp = fopen("saveinfo", "r");
+    if (fp != NULL) {
+        // saveinfo로부터 이전에 저장한 그림의 파일명, 크기(longx, longy), 저장 형식(filewrite 1,2)을 읽어옴
+        if (fscanf(fp, "%s\n%d %d\n%d", last_filename, &longx, &longy, &last_format) == 4) {
+            fclose(fp);
+
+            // 파일 크기 유효성 검사
+            if (longx < 1 || longx > 20 || longy < 1 || longy > 20) {
+                // 크기 범위가 잘못되었으면 로드 시도 X
+                longx = 10; longy = 10;
+            } else {
+                prxy(10, 5, "Last saved file found: "); // 파일 찾았을때 메시지
+                cprintf("%s (%dx%d)", last_filename, longx, longy); // 파일에서 파일명,크기 읽어 옴
+                prxy(10, 6, "Load this file? (y/n): "); // 불러올지 선택
+                
+                sel = getch(); // 선택지 받아오기
+                
+                if (sel == 'y' || sel == 'Y') { // y 입력시 fileload 함수 실행
+                    if (fileload(last_filename, last_format)) {
+                        prxy(10, 8, "File loaded successfully!"); // 성공 메시지
+                        sleep(1);
+                        loaded = 1; // 로드 성공 했으므로 초기 입력 메뉴 생략
+                    } else {
+                        prxy(10, 8, "Failed to load file. Starting new drawing."); // 실패 메시지
+                        longx = 10; longy = 10; // 크기 기본값으로 리셋
+                        sleep(1);
+                    }
+                }
+            }
+        } else {
+            fclose(fp); // Info 파일이 비어있거나 형식이 잘못됨
         }
-        else {
-            prxy(45,12,"Invalid number. Please try again.");
-            prxy(45,10,"How many count for x(1~20):     "); // 입력란 초기화
-            prxy(45,11,"How many count for y(1~20):     ");
+    }
+
+	if (!loaded) { // 파일을 불러오지 못했을 때, n으로 대답했을 때
+        prxy(10,5,"                                     ");
+        prxy(10,6,"                         ");
+        textcolor(10);
+        prxy(10,7,"You can make pictures with \"*,0,o\"");
+        textcolor(9);
+        prxy(25,3," P I C T U R E   M A K E E R ");
+        textcolor(11);
+        while(1){
+            prxy(45,10,"How many count for x(1~20):");
+            scanf("%d",&longx);
+            prxy(45,12,"                                 "); // 오류 메시지 지우기
+            prxy(45,11,"How many count for y(1~20):");
+            scanf("%d",&longy);
+            if(longx > 0 && longx < 21 && longy > 0 && longy < 21){ // 범위 안이면 탈출
+                break;
+            }
+            else {
+                prxy(45,12,"Invalid number. Please try again."); // 오류 메시지 출력
+                prxy(45,10,"How many count for x(1~20):             "); // 입력란 초기화
+                prxy(45,11,"How many count for y(1~20):             ");
+            }
         }
     }
 	
@@ -171,9 +214,9 @@ void make()
 
         case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);}
                      else {
-                         nowy=nowy-1;
+                         nowy=nowy-1; // y는 1칸씩
                          gotoxy(nowx,nowy);
-                         picy--;
+                         picy--; // 배열의 행 인덱스 감소
                         }
                      break;
 
@@ -280,6 +323,13 @@ void filewrite1()
      }
      putc('}',fp);putc(';',fp);
      fclose(fp);
+     FILE *info_fp = fopen("saveinfo", "w"); // 불러오기 위한 정보 저장
+     if (info_fp != NULL) {
+         fprintf(info_fp, "%s\n", filename); // 파일명
+         fprintf(info_fp, "%d %d\n", longx, longy); // 크기
+         fprintf(info_fp, "1"); // 저장 형식 (1)
+         fclose(info_fp);
+     }
 	 prxy(45,22,"                         ");
 }
 
@@ -307,7 +357,72 @@ void filewrite2()
      }
      putc('}',fp);putc(';',fp);
 	 fclose(fp);
+     FILE *info_fp = fopen("saveinfo", "w"); // 불러오기 위한 정보 저장
+     if (info_fp != NULL) {
+         fprintf(info_fp, "%s\n", filename); // 파일명
+         fprintf(info_fp, "%d %d\n", longx, longy); // 크기
+         fprintf(info_fp, "2"); // 저장 형식 (2)
+         fclose(info_fp);
+     }
 	 prxy(45,22,"                         ");
+}
+
+int fileload(char* filename, int format) {
+    FILE *fp = fopen(filename, "r"); // saveinfo에서 읽어온 파일명
+    if (fp == NULL) { // 파일 열기 실패
+        prxy(10, 9, "Error: Cannot open file.");
+        sleep(1);
+        return 0;
+    }
+
+    int c;
+    int tempx, tempy;
+
+    // '{' 찾기
+    while((c = fgetc(fp)) != EOF && (c != '{')); // 처음 받은 c가 EOF가 아니고 '{'를 만날때까지 계속 읽음
+    if (c == EOF) { fclose(fp); return 0; } // '{'를 못만남, 함수 종료
+
+    // '{' 다음 줄바꿈 건너뛰기
+    while((c = fgetc(fp)) != EOF && (c == '\n' || c == ' '));
+    ungetc(c, fp); // 첫 번째 문자를 다시 스트림에 넣음
+
+    // longx, longy 크기에 맞춰 데이터 불러오기
+    for(tempy=0; tempy<longy; tempy++) {
+        for(tempx=0; tempx<longx; tempx++) {
+            
+            if (format == 1) { // filewrite1 형식 ,와 ''
+                // 여는 따옴표(') 찾기
+                while((c = fgetc(fp)) != EOF && (c != '\'')); // ' 만날때까지
+                if (c == EOF) { fclose(fp); return 0; }
+                
+                // 그린 문자 읽기
+                c = fgetc(fp);
+                if (c == EOF) { fclose(fp); return 0; }
+                picture[tempy][tempx] = (char)c;
+                
+                // 닫는 따옴표(') 찾기
+                while((c = fgetc(fp)) != EOF && (c != '\'')); // ' 만날떄까지
+                if (c == EOF) { fclose(fp); return 0; }
+
+            } else { // filewrite2 형식 ,만 존재
+                c = fgetc(fp);
+                if (c == EOF) { fclose(fp); return 0; }
+                picture[tempy][tempx] = (char)c;
+            }
+
+            // , 건너뛰기
+            if(tempx != longx - 1) {
+                while((c = fgetc(fp)) != EOF && (c != ','));
+                if (c == EOF) { fclose(fp); return 0; }
+            }
+        }
+        // \n 건너뛰기
+        while((c = fgetc(fp)) != EOF && (c != '\n'));
+        if (c == EOF && tempy < longy - 1) { fclose(fp); return 0; } // 파일이 중간에 끝남
+    }
+    
+    fclose(fp);
+    return 1; // 불러오기 성공
 }
 
 void mon() /* 메뉴 화면 출력 */
@@ -316,37 +431,39 @@ void mon() /* 메뉴 화면 출력 */
     myx=(2*longx)+whereX;
     myy=longy+whereX;
     tempy=myy;
+
     for(x=whereX;x<myx-2;x=x+2)
     {
-        /*
-          화면 x좌표를 picture의 열 인덱스로 변경
-          - 그림판 시작점(whereX)으로부터의 거리 계산 : x - whereX
-          - 한 셀 폭이 2칸이므로 /2 -> c = 0,1,2,3,...로 열 인덱스로 변경
-        */
-        int c = (x - whereX) / 2;
-
-        /*
-          열의 모든 행을 위에서 아래로 출력
-          - picture[y][c]이 공백이면 화면에 ','로 표시
-        */ 
         for(y = 0; y < longy; y++)
         {
-            char m = picture[y][c]; //picture 2차원 배열
-
-            // 빈칸을 화면상 ','로 표시
-            if(m == ' ')
-            {
-                m = ',';
-            }
-
             /*
-              커서 위치 지정 
+              커서 위치 지정
               - 행 : whereY(3)부터 아래로 한칸씩 내려감
-              - 열 : x는 2칸 간격 -> 초기 정렬 맞춤을 위해 x로 열 간격 유지
+              - 열 : x는 2칸 간격 (3, 5, 7...)
             */
             gotoxy(x, whereY + y);
-            // 해당 위치에 문자 출력(빈칸이면 ',' 출력)
-            putch(m);
+            putch(',');
+        }
+    }
+    
+    for(int tempy = 0; tempy < longy; tempy++) // y좌표
+    {
+        for(int tempx = 0; tempx < longx; tempx++) // x좌표
+        {
+            char m = picture[tempy][tempx]; // picture 2차원 배열
+
+            // 공백이 아닌 그림 문자일 경우에만 출력
+            if(m != ' ')
+            {
+                // 실제 커서가 위치할 화면 X좌표 계산
+                // (tempx=0 -> 2, tempx=1 -> 4...)
+                int screen_x = (tempx * 2) + (whereX - 1); 
+                // 화면 Y좌표 계산
+                int screen_y = whereY + tempy;
+
+                gotoxy(screen_x, screen_y);
+                putch(m);
+            }
         }
     }
 
