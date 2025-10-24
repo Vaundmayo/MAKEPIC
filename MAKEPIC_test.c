@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 void clrscr() {
     printf("\033[2J\033[1;1H");
@@ -73,7 +74,7 @@ void cprintf(const char *format, ...) {
 #define RIGHT 'd'   // 오른쪽 화살표 대신 'd' 사용
 #define UP 'w'      // 위쪽 화살표 대신 'w' 사용
 #define DOWN 'z'    // 아래쪽 화살표 대신 'z' 사용
-
+#define MAX_HISTORY 1000 //replay 기능
 
 void mon(void);
 void make(void);
@@ -110,10 +111,20 @@ char picture[25][25]=
     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '}};
 
+typedef struct {
+	int x, y;
+	char ch;
+	useconds_t delay; //시간 간격(ms)
+} Drawing;
+
+Drawing history[MAX_HISTORY];
+int drawing_count = 0;
+
+
 int longx=10,longy=10;
 int main()
 {
-    FILE *fp;
+    FILE *fp;~
     int allxy[101],lastxy;
     char readline,ch,filename,sel;
     cls();
@@ -188,22 +199,51 @@ void make()
         case '1'   : picture[picy][picx]='*'; // 배열에 * 입력
                      putch('*'); // 화면에 * 출력
                      gotoxy(nowx,nowy); // 커서 원위치
+		     if(drawing_count<MAX_HISTORY)
+			     history[drawing_count++] = (Drawing){nowx, nowy, '*', 100000}; //replay
                      break;
                     // '0' 그리기
         case '2'   : picture[picy][picx]='0';
                      putch('0');
                      gotoxy(nowx,nowy);
+		     if(drawing_count<MAX_HISTORY)
+                             history[drawing_count++] = (Drawing){nowx, nowy, '0', 100000}; //replay
                      break;
                     // 'o' 그리기
         case '3'   : picture[picy][picx]='o';
                      putch('o');
                      gotoxy(nowx,nowy);
+		     if(drawing_count<MAX_HISTORY)
+                             history[drawing_count++] = (Drawing){nowx, nowy, 'o', 100000}; //replay
                      break;
                     // 공백 그리기
         case '4'   : picture[picy][picx]=' ';
                      putch(' ');
                      gotoxy(nowx,nowy);
+		     if(drawing_count<MAX_HISTORY)
+                             history[drawing_count++] = (Drawing){nowx, nowy, ' ', 100000}; //replay
                      break;
+
+
+        case 'p' : //replay
+                     cls(); // 화면 지우기
+                     prxy(45, 20, "replay start");
+                     usleep(500000); //0.5초 대기
+
+                     for(int i = 0;i<drawing_count;i++){
+                             gotoxy(history[i].x, history[i].y); //좌표 이동
+                             putch(history[i].ch); //기록된 문자 출력
+                             usleep(history[i].delay); //딜레이
+                     }
+		     prxy(45, 20, "                    ");
+                     prxy(45, 20, "replay complete! press any key");
+                     getch(); //키 입력
+                     cls();
+                     mon();
+                     gotoxy(nowx, nowy); //화면 복원
+                     break;
+
+
 
         case 'q'   : filesave(nowx,nowy); // 저장 후 종료
                      exit(0);
@@ -230,12 +270,14 @@ void make()
                      nowy=whereY;
                      picx=0;
                      picy=0;
+		     drawing_count = 0; //replay 기록 초기화
                      gotoxy(nowx,nowy); // 커서 시작 위치로 이동
                      prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
                      }
                      break;
+	
 
-        default    : gotoxy(nowx,nowy);
+	default    : gotoxy(nowx,nowy);
                      /*putch(go);*/
                      break;
             }
@@ -362,9 +404,10 @@ void mon() /* 메뉴 화면 출력 */
  	prxy(48,11," z . move down");
  	prxy(48,12," a . move left");
  	prxy(48,13," d . move right");
- 	prxy(48,14," s . save");
- 	prxy(48,15," q . save & exit");
- 	prxy(48,16," x . exit");
+	prxy(48,14," p . replay");
+	prxy(48,15," s . save");
+ 	prxy(48,16," q . save & exit");
+ 	prxy(48,17," x . exit");
     textcolor(15);
 }
 void cls(void)
