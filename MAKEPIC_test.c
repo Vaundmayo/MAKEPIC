@@ -32,7 +32,7 @@ void textcolor(int color) {
         break;
 
         case 15:
-        printf("\033[34m"); // color = 15일때 파랑색으로 변경
+        printf("\033[37m"); // color = 15일때 흰색으로 변경
         break;
 
         default:
@@ -272,6 +272,9 @@ void filewrite1()
         for(tempx=0;tempx<longx;tempx++)
         {
             fprintf(fp, "'%c'", picture[tempy][tempx]); // fprintf로 '저장
+            if(tempx != longx - 1){ // , 찍기
+                putc(',', fp);
+            }
         }
         putc('\n',fp);
      }
@@ -296,6 +299,9 @@ void filewrite2()
         for(tempx=0;tempx<longx;tempx++)
         {
             putc(picture[tempy][tempx], fp); // putc로 그림만 저장
+            if(tempx != longx - 1){
+                putc(',', fp);
+            }
         }
         putc('\n',fp);
      }

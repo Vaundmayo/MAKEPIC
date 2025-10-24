@@ -1,11 +1,6 @@
-# 사용할 컴파일러 (과제 요구 사항에 따라 gcc 명시)
+# 사용할 컴파일러
 CC = gcc
-
-# 컴파일 경고 옵션 (모든 경고 활성화)
-CFLAGS = -Wall
-
-# 링커 플래그
-LDFLAGS = 
+CFLAGS = -Wall -g
 
 # 컴파일할 소스 파일
 SRCS = MAKEPIC_test.c
