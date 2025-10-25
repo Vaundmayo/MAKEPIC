@@ -118,6 +118,23 @@ typedef struct {
 	useconds_t delay; //시간 간격(ms)
 } Drawing;
 
+
+/* 
+    [추가 기능] replay(리플레이)
+
+    구현 배경
+    - 만드는 과정을 시각적으로 시연함
+    
+    설계
+    - drawing 구조체에 (x, y, ch, delay) 정보를 저장하여 사용자가 1/2/3/4 키를 누를때마다
+      history[]에 기록
+    - 'p' 키 입력 시, history[]에 저장된 정보를 순서대로 출력(putch)
+    - 각 출력 사이에 일정 시간 간격 유지
+    - 재생 완료 후 격자 복원 및 커서 원위치
+
+    사용법
+    - 1/2/3/4 키로 그림을 그린 후, 'p' 키를 누르면 입력 순서대로 자동으르 재생
+*/
 Drawing history[MAX_HISTORY];
 int drawing_count = 0;
 
@@ -267,8 +284,7 @@ void make()
                              history[drawing_count++] = (Drawing){nowx, nowy, ' ', 100000}; //replay
                      break;
 
-
-        case 'p' : //replay
+        case 'p' :  
                      cls(); // 화면 지우기
                      prxy(45, 20, "replay start");
                      usleep(500000); //0.5초 대기
@@ -328,6 +344,21 @@ void make()
 
 }
 
+
+/* 
+    [추가 기능] 저장 및 불러오기 
+
+    구현배경
+    - 프로그램 종료 후에도 동일 상태로 작업을 이어서 할 수 있게 함
+
+    설계
+    - 작업 내용을 파일에 저장 후, 파일 정보는 saveinfo에 기록
+    - 프로그램을 다시 실행할 때 saveinfo를 읽어 마지막으로 저장한 파일 불러오기(y/n)
+    - 사용자가 불러오기를 선택하면(y) fileload()를 통해 저장된 picture 내용 복구
+
+    사용법
+    - s: 저장 / q: 저장 후 종료 / 프로그램 실행 시 저장된 파일 불러오기(y/n)
+*/
 void filesave(int nowx,int nowy)
 {
     int yn;
