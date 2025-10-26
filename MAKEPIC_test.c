@@ -67,6 +67,17 @@ void cprintf(const char *format, ...) {
     fflush(stdout);
 }
 
+int valid_int(const char *str) {
+    if (str[0] == '\0') return 0; // 빈 문자열은 오류
+    
+    for (int i = 0; str[i] != '\0'; i++) { // 문자열의 모든 문자가 숫자인지 확인
+        if (!isdigit(str[i])) {
+            return 0; // 숫자가 아닌 문자가 포함되어 있으면 False
+        }
+    }
+    return 1; // 모두 숫자이면 True
+}
+
 // 화살표 키 대신 일반 키로 변경
 #define whereX 3
 #define whereY 3
@@ -84,6 +95,7 @@ void filewrite2(void);
 void prxy(int x,int y,char *msg);
 void cls(void);
 int fileload(char* filename, int format);
+int valid_int(const char *str);
 
 char picture[25][25]=
    {{' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '},
@@ -133,7 +145,7 @@ typedef struct {
     - 재생 완료 후 격자 복원 및 커서 원위치
 
     사용법
-    - 1/2/3/4 키로 그림을 그린 후, 'p' 키를 누르면 입력 순서대로 자동으르 재생
+    - 1/2/3/4 키로 그림을 그린 후, 'p' 키를 누르면 입력 순서대로 자동으로 재생
 */
 Drawing history[MAX_HISTORY];
 int drawing_count = 0;
@@ -148,6 +160,7 @@ int main()
     char last_filename[100];
     int last_format = 0;
     int loaded = 0;
+    char buffer[100];
     cls();
 
     fp = fopen("saveinfo", "r");
@@ -194,16 +207,31 @@ int main()
         textcolor(11);
         while(1){
             prxy(45,10,"How many count for x(1~20):");
-            scanf("%d",&longx);
-            prxy(45,12,"                                 "); // 오류 메시지 지우기
-            prxy(45,11,"How many count for y(1~20):");
-            scanf("%d",&longy);
-            if(longx > 0 && longx < 21 && longy > 0 && longy < 21){ // 범위 안이면 탈출
-                break;
-            }
-            else {
+            fgets(buffer, sizeof(buffer), stdin);
+            buffer[strcspn(buffer, "\n")] = '\0'; // 개행 문자 제거
+            if(!valid_int(buffer)) { // 유효한 정수가 아니면
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메시지 출력
                 prxy(45,10,"How many count for x(1~20):             "); // 입력란 초기화
+                continue; // 다시 입력 받기
+            }
+            longx = atoi(buffer); // 정수로 변환하여 저장
+            prxy(45,11,"How many count for y(1~20):");
+            buffer[0] = '\0'; // 버퍼 초기화
+            fgets(buffer, sizeof(buffer), stdin);
+            buffer[strcspn(buffer, "\n")] = '\0';
+            if(!valid_int(buffer)) {
+                prxy(45,12,"Invalid number. Please try again.");
+                prxy(45,10,"How many count for x(1~20):             ");
+                prxy(45,11,"How many count for y(1~20):             ");
+                continue;
+            }
+            longy = atoi(buffer);
+            if(longx > 0 && longx < 21 && longy > 0 && longy < 21){ // longx, longy 값이 존재하고 범위 안이면 탈출
+                break;
+            }
+            else{
+                prxy(45,12,"Invalid number. Please try again.");
+                prxy(45,10,"How many count for x(1~20):             ");
                 prxy(45,11,"How many count for y(1~20):             ");
             }
         }
