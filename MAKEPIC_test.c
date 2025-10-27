@@ -5,7 +5,6 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdarg.h>
-#include <unistd.h>
 #include <ctype.h>
 
 void clrscr() {
