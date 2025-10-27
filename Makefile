@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -Wall -g
 
 # 컴파일할 소스 파일
-SRCS = MAKEPIC_test.c
+SRCS = MAKEPIC_20223132.c
 
 # 생성할 실행 파일 이름
 TARGET = makepic
