@@ -313,22 +313,31 @@ void make()
                      break;
 
         case 'p' :  
-                     cls(); // 화면 지우기
-                     prxy(45, 20, "replay start");
-                     usleep(500000); //0.5초 대기
-
-                     for(int i = 0;i<drawing_count;i++){
+                     if(drawing_count != 0){ // 입력이 있었을 때
+                        cls(); // 화면 지우기
+                        prxy(45, 20, "replay start");
+                        usleep(500000); //0.5초 대기
+                        for(int i = 0;i<drawing_count;i++){
                              gotoxy(history[i].x, history[i].y); //좌표 이동
                              putch(history[i].ch); //기록된 문자 출력
                              usleep(history[i].delay); //딜레이
+                        }
+                        prxy(45, 20, "                    ");
+                        prxy(45, 20, "replay complete! press any key");
+                        getch(); //키 입력
+                        cls();
+                        mon();
+                        gotoxy(nowx, nowy); //화면 복원
+                        break;
                      }
-		     prxy(45, 20, "                    ");
-                     prxy(45, 20, "replay complete! press any key");
-                     getch(); //키 입력
-                     cls();
-                     mon();
-                     gotoxy(nowx, nowy); //화면 복원
-                     break;
+                     else{
+                         prxy(45, 20, "No drawing history! press any key");
+                         getch();
+                         cls();
+                         mon();
+                         gotoxy(nowx, nowy);
+                         break;
+                     }
 
 
 
