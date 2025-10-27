@@ -162,6 +162,8 @@ typedef struct {
 */
 Drawing history[MAX_HISTORY]; // 리플레이 기록
 int drawing_count = 0; // 현재 기록 개수
+char loaded_picture[25][25]; //불러오기 기능 시 그림 상태 저장 용도
+int loaded_success = 0; //불러오기 성공했는지 확인			    
 
 
 int longx=10,longy=10;
@@ -353,12 +355,42 @@ void make()
                      if(drawing_count != 0){ // 입력이 있었을 때
                         cls(); // 화면 지우기
                         prxy(45, 20, "replay start");
-                        usleep(500000); //0.5초 대기
-                        for(int i = 0;i<drawing_count;i++){
-                             gotoxy(history[i].x, history[i].y); //i번째 기록의 좌표로 이동
-                             putch(history[i].ch); //기록된 문자 출력
-                             usleep(history[i].delay); //딜레이
-                        }
+
+			int x, y;
+			int myx = (2*longx) + whereX;
+			for(x = whereX; x < myx-2; x = x+2) {
+			    for(y = 0; y < longy; y++) {
+				gotoxy(x, whereY + y);
+				putch(','); // 격자만 출력
+			    }
+			}
+			usleep(500000); //0.5초 대기
+
+			//불러온 그림이 있을 때
+			if(loaded_success){
+				for(int y=0;y<longy;y++){
+		                       	for(int x = 0;x<longx;x++){
+						char c = loaded_picture[y][x];
+						if(c!=' '){ //공백 출력x
+							int screen_x = (x*2)+(whereX-1);
+							int screen_y = whereY+y;
+		  	                                gotoxy(screen_x, screen_y);
+							putch(c);
+
+						}
+					}
+	                        }
+			}
+			
+              
+			//불러오기 이후 history 기록 재생
+			for(int i = 0;i<drawing_count;i++){
+				gotoxy(history[i].x, history[i].y); //i번째 기록 좌표로 이동
+				putch(history[i].ch); //기록된 문자출력
+				usleep(history[i].delay); //지정된 시간만큼 대기
+
+			}
+
                         prxy(45, 20, "                    ");
                         prxy(45, 20, "replay complete! press any key");
                         getch(); //키 입력
@@ -396,7 +428,7 @@ void make()
                          }
                      }
                 
-                     cls(); // 화면 지우기
+                     cls(); // 화면 지우기화
                      mon(); // 메뉴, 격자 다시 그리기
                     
                      // 배열, 커서 위치 초기화
@@ -589,6 +621,14 @@ int fileload(char* filename, int format) {
     }
     
     fclose(fp); // 파일 닫기
+    
+    for(int y = 0;y<longy;y++){
+	    for(int x = 0;x<longx;x++){
+		    loaded_picture[y][x] = picture[y][x];
+	    }
+    }
+    loaded_success = 1; //불러오기 성공(리플레이용)
+
     return 1; // 불러오기 성공
 }
 
