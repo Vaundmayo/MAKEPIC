@@ -168,7 +168,7 @@ int longx=10,longy=10;
 int main()
 {
     /*
-      프로그램 시작 시 마지막 저장 파일 불러올기 선택
+      프로그램 시작 시 마지막 저장 파일 불러올지 선택
     */
     FILE *fp;
     int allxy[101],lastxy;
@@ -243,7 +243,7 @@ int main()
             if(!valid_int(buffer)) { // 입력이 숫자로만 이루어졌는지 검사
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
                 prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
-                prxy(45,11,"How many count for y(1~20):             "); // y 입력 칸 비우기
+                prxy(45,11,"                                        "); // y 입력 칸 비우기
                 continue; // 다시 입력 받기
             }
             longy = atoi(buffer); // 정수로 변환하여 저장
@@ -255,7 +255,7 @@ int main()
             else{
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
                 prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
-                prxy(45,11,"How many count for y(1~20):             "); // y 입력 칸 비우기
+                prxy(45,11,"                                        "); // y 입력 칸 비우기
             }
         }
     }
@@ -273,7 +273,7 @@ int main()
   make()
 
   - 이동/그리기/리플레이/리셋 설계
-  - 1 : '*' 그리기, 2 : '0' 그리기, 3 : 'o' 그리기, 4 : ' '(공백) 그리기
+  -  1 : '*' 그리기, 2 : '0' 그리기, 3 : 'o' 그리기, 4 : ' '(공백) 그리기
   - 'p' : 리플레이
   - 'r' : 리셋, 초기화
   - 's' : 저장, 'q' : 저장 후 종료, 'x' : 즉시 종료
@@ -324,47 +324,47 @@ void make()
         case '1'   : picture[picy][picx]='*'; // 배열에 * 입력
                      putch('*'); // 화면에 * 출력
                      gotoxy(nowx,nowy); // 커서 원위치
-		     if(drawing_count<MAX_HISTORY) // 기록 공간이 남으면
-			     history[drawing_count++] = (Drawing){nowx, nowy, '*', 100000}; //replay
+		             if(drawing_count<MAX_HISTORY) // 기록 공간이 남으면
+			         history[drawing_count++] = (Drawing){nowx, nowy, '*', 100000}; //replay
                      break;
                     // '0' 그리기
         case '2'   : picture[picy][picx]='0';
                      putch('0');
                      gotoxy(nowx,nowy);
-		     if(drawing_count<MAX_HISTORY)
-                             history[drawing_count++] = (Drawing){nowx, nowy, '0', 100000}; //replay
+		             if(drawing_count<MAX_HISTORY)
+                     history[drawing_count++] = (Drawing){nowx, nowy, '0', 100000}; //replay
                      break;
                     // 'o' 그리기
         case '3'   : picture[picy][picx]='o';
                      putch('o');
                      gotoxy(nowx,nowy);
-		     if(drawing_count<MAX_HISTORY)
-                             history[drawing_count++] = (Drawing){nowx, nowy, 'o', 100000}; //replay
+		             if(drawing_count<MAX_HISTORY)
+                     history[drawing_count++] = (Drawing){nowx, nowy, 'o', 100000}; //replay
                      break;
                     // 공백 그리기
         case '4'   : picture[picy][picx]=' ';
                      putch(' ');
                      gotoxy(nowx,nowy);
-		     if(drawing_count<MAX_HISTORY)
-                             history[drawing_count++] = (Drawing){nowx, nowy, ' ', 100000}; //replay
+		             if(drawing_count<MAX_HISTORY)
+                     history[drawing_count++] = (Drawing){nowx, nowy, ' ', 100000}; //replay
                      break;
                     // replay(리플레이)
         case 'p' :  
                      if(drawing_count != 0){ // 입력이 있었을 때
                         cls(); // 화면 지우기
                         prxy(45, 20, "replay start");
-                        usleep(500000); //0.5초 대기
+                        usleep(500000); // 0.5초 대기
                         for(int i = 0;i<drawing_count;i++){
-                             gotoxy(history[i].x, history[i].y); //i번째 기록의 좌표로 이동
-                             putch(history[i].ch); //기록된 문자 출력
-                             usleep(history[i].delay); //딜레이
+                             gotoxy(history[i].x, history[i].y); // i번째 기록의 좌표로 이동
+                             putch(history[i].ch); // 기록된 문자 출력
+                             usleep(history[i].delay); // 딜레이
                         }
                         prxy(45, 20, "                    ");
                         prxy(45, 20, "replay complete! press any key");
-                        getch(); //키 입력
+                        getch(); // 키 입력
                         cls();
                         mon();
-                        gotoxy(nowx, nowy); //화면 복원
+                        gotoxy(nowx, nowy); // 화면 복원
                         break;
                      }
                      else{
@@ -391,8 +391,8 @@ void make()
                 
                      // picture 배열의 모두 공백으로 변경
                      for(tempy=0; tempy<longy; tempy++) {
-                     for(tempx=0; tempx<longx; tempx++) {
-                             picture[tempy][tempx] = ' ';
+                        for(tempx=0; tempx<longx; tempx++) {
+                            picture[tempy][tempx] = ' ';
                          }
                      }
                 
@@ -404,7 +404,7 @@ void make()
                      nowy=whereY;
                      picx=0;
                      picy=0;
-		             drawing_count = 0; //replay 기록 초기화
+		             drawing_count = 0; // replay 기록 초기화
                      gotoxy(nowx,nowy); // 커서 시작 위치로 이동
                      prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
                      }
@@ -629,10 +629,10 @@ void mon() /* 메뉴 화면 출력 */
             // 공백이 아닌 그림 문자일 경우에만 출력
             if(m != ' ')
             {
-                // 실제 커서가 위치할 화면 X좌표 계산
+                // 실제 커서가 위치할 화면 x좌표 계산
                 // (tempx=0 -> 2, tempx=1 -> 4...)
                 int screen_x = (tempx * 2) + (whereX - 1); 
-                // 화면 Y좌표 계산
+                // 화면 y좌표 계산
                 int screen_y = whereY + tempy;
 
                 gotoxy(screen_x, screen_y); // 계산된 위치로 커서 이동

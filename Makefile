@@ -22,3 +22,8 @@ run: all
 # 'make clean' 명령어로 컴파일된 파일을 삭제
 clean:
 	rm -f $(TARGET)
+
+# 'make cleanall' 명령어로 컴파일 파일과 saveinfo 삭제
+cleanall:
+	rm -f $(TARGET)
+	rm -f saveinfo
