@@ -5,6 +5,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <stdarg.h>
+// 숫자 판별 함수 isdigit() 사용을 위해 'ctype.h' 추가
 #include <ctype.h>
 
 void clrscr() {
@@ -17,6 +18,12 @@ void gotoxy(int x, int y) {
     fflush(stdout);
 }
 
+/* 
+  textclolr()
+
+  - 터미널에서 실제 색상이 출력되도록 ANSI 이스케이프 코드를 사용하여 color값 추가
+  - 설계 : 사용하는 9/10/11/15에 색상 매핑, 그 외는 기본 흰색
+*/
 void textcolor(int color) {
     // Linux에서는 컬러를 ANSI escape code로 처리할 수 있음. 여기서는 무시.
     switch(color) {
@@ -67,6 +74,12 @@ void cprintf(const char *format, ...) {
     fflush(stdout);
 }
 
+/*
+  valid_int()
+
+  - 입력된 문자열이 정수인지 확인
+  - 빈 문자열과 문자는 오류, 정수면 허용
+*/
 int valid_int(const char *str) {
     if (str[0] == '\0') return 0; // 빈 문자열은 오류
     
@@ -125,8 +138,8 @@ char picture[25][25]=
     {' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '}};
 
 typedef struct {
-	int x, y;
-	char ch;
+	int x, y; // 화면의 커서 좌표 (문자가 찍힌 위치)
+	char ch; // 출력한 문자('*', '0', 'o', ' ')
 	useconds_t delay; //시간 간격(ms)
 } Drawing;
 
@@ -147,13 +160,16 @@ typedef struct {
     사용법
     - 1/2/3/4 키로 그림을 그린 후, 'p' 키를 누르면 입력 순서대로 자동으로 재생
 */
-Drawing history[MAX_HISTORY];
-int drawing_count = 0;
+Drawing history[MAX_HISTORY]; // 리플레이 기록
+int drawing_count = 0; // 현재 기록 개수
 
 
 int longx=10,longy=10;
 int main()
 {
+    /*
+      프로그램 시작 시 마지막 저장 파일 불러올기 선택
+    */
     FILE *fp;
     int allxy[101],lastxy;
     char readline,ch,filename,sel;
@@ -162,7 +178,7 @@ int main()
     int loaded = 0;
     char buffer[100];
     cls();
-
+    
     fp = fopen("saveinfo", "r");
     if (fp != NULL) {
         // saveinfo로부터 이전에 저장한 그림의 파일명, 크기(longx, longy), 저장 형식(filewrite 1,2)을 읽어옴
@@ -197,7 +213,8 @@ int main()
         }
     }
 
-	if (!loaded) { // 파일을 불러오지 못했을 때, n으로 대답했을 때
+	if (!loaded) { // 이전 파일을 불러오지 못한 경우 (n으로 대답했을 때)
+        //초기 화면
         prxy(10,5,"                                     ");
         prxy(10,6,"                         ");
         textcolor(10);
@@ -205,34 +222,40 @@ int main()
         textcolor(9);
         prxy(25,3," P I C T U R E   M A K E E R ");
         textcolor(11);
+
+        // 올바른 값이 들어올때까지 반복
         while(1){
             prxy(45,10,"How many count for x(1~20):");
             fgets(buffer, sizeof(buffer), stdin);
-            buffer[strcspn(buffer, "\n")] = '\0'; // 개행 문자 제거
-            if(!valid_int(buffer)) { // 유효한 정수가 아니면
+            buffer[strcspn(buffer, "\n")] = '\0'; // 개행 문자('\n') 제거 -> 순수 문자열만 남김
+            if(!valid_int(buffer)) { // 입력이 숫자로만 이루어졌는지 검사
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메시지 출력
                 prxy(45,10,"How many count for x(1~20):             "); // 입력란 초기화
                 continue; // 다시 입력 받기
             }
             longx = atoi(buffer); // 정수로 변환하여 저장
+
+
             prxy(45,11,"How many count for y(1~20):");
             buffer[0] = '\0'; // 버퍼 초기화
             fgets(buffer, sizeof(buffer), stdin);
-            buffer[strcspn(buffer, "\n")] = '\0';
-            if(!valid_int(buffer)) {
-                prxy(45,12,"Invalid number. Please try again.");
-                prxy(45,10,"How many count for x(1~20):             ");
-                prxy(45,11,"How many count for y(1~20):             ");
-                continue;
+            buffer[strcspn(buffer, "\n")] = '\0'; // 개행 제거
+            if(!valid_int(buffer)) { // 입력이 숫자로만 이루어졌는지 검사
+                prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
+                prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
+                prxy(45,11,"How many count for y(1~20):             "); // y 입력 칸 비우기
+                continue; // 다시 입력 받기
             }
-            longy = atoi(buffer);
-            if(longx > 0 && longx < 21 && longy > 0 && longy < 21){ // longx, longy 값이 존재하고 범위 안이면 탈출
-                break;
+            longy = atoi(buffer); // 정수로 변환하여 저장
+
+
+            if(longx > 0 && longx < 21 && longy > 0 && longy < 21){ // longx, longy 값이 존재하고 범위 안이면 탈출 (범위 : 1~20)
+                break; // 정상 입력시 반복문 종료
             }
             else{
-                prxy(45,12,"Invalid number. Please try again.");
-                prxy(45,10,"How many count for x(1~20):             ");
-                prxy(45,11,"How many count for y(1~20):             ");
+                prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
+                prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
+                prxy(45,11,"How many count for y(1~20):             "); // y 입력 칸 비우기
             }
         }
     }
@@ -245,12 +268,26 @@ int main()
     make();
     return 0;
 }
+
+/*
+  make()
+
+  - 이동/그리기/리플레이/리셋 설계
+  - 1 : '*' 그리기, 2 : '0' 그리기, 3 : 'o' 그리기, 4 : ' '(공백) 그리기
+  - 'p' : 리플레이
+  - 'r' : 리셋, 초기화
+  - 's' : 저장, 'q' : 저장 후 종료, 'x' : 즉시 종료
+*/
 void make() 
 {
-    int nowx=whereX-1,nowy=whereY,picx=0,picy=0;
+    int nowx=whereX-1,nowy=whereY,picx=0,picy=0; // 시작 커서 위치, 그림 배열 인덱스 초기화
     char go,yn;
+
+    // 사용자가 종료 키를 누를때까지 반복
     while(1/*(go=getch())!='!'*/){
-    go=getch();
+    go=getch(); // 키 입력 대기
+
+    // 입력 받은 키에 따라 선택
     switch(go){
         case LEFT  : if(nowx==whereX-1){prxy(45,20,"You can't go there(LEFT)        ");gotoxy(nowx,nowy);}
                      else{
@@ -268,26 +305,26 @@ void make()
                         }
                      break;
 
-        case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);}
+        case UP    : if(nowy==whereY){prxy(45,20,"You can't go there(UP)        ");gotoxy(nowx,nowy);} // 맨 위라면 이동불가 메세지
                      else {
-                         nowy=nowy-1; // y는 1칸씩
-                         gotoxy(nowx,nowy);
+                         nowy=nowy-1; // y는 1칸씩 위
+                         gotoxy(nowx,nowy); // 커서 이동
                          picy--; // 배열의 행 인덱스 감소
                         }
                      break;
 
-        case DOWN  : if(nowy==(whereY+longy-1)){prxy(45,20,"You can't go there(DOWN)      ");gotoxy(nowx,nowy);}
+        case DOWN  : if(nowy==(whereY+longy-1)){prxy(45,20,"You can't go there(DOWN)      ");gotoxy(nowx,nowy);} // 맨 아래라면 이동불가 메세지
                      else {
-                     nowy=nowy+1;
-                     gotoxy(nowx,nowy);
-                     picy++;
+                     nowy=nowy+1; // y는 1칸씩 아래
+                     gotoxy(nowx,nowy); // 커서 이동
+                     picy++; // 배열의 행 인덱스 증가
                     }
                      break;
                     // '*' 그리기
         case '1'   : picture[picy][picx]='*'; // 배열에 * 입력
                      putch('*'); // 화면에 * 출력
                      gotoxy(nowx,nowy); // 커서 원위치
-		     if(drawing_count<MAX_HISTORY)
+		     if(drawing_count<MAX_HISTORY) // 기록 공간이 남으면
 			     history[drawing_count++] = (Drawing){nowx, nowy, '*', 100000}; //replay
                      break;
                     // '0' 그리기
@@ -311,14 +348,14 @@ void make()
 		     if(drawing_count<MAX_HISTORY)
                              history[drawing_count++] = (Drawing){nowx, nowy, ' ', 100000}; //replay
                      break;
-
+                    // replay(리플레이)
         case 'p' :  
                      if(drawing_count != 0){ // 입력이 있었을 때
                         cls(); // 화면 지우기
                         prxy(45, 20, "replay start");
                         usleep(500000); //0.5초 대기
                         for(int i = 0;i<drawing_count;i++){
-                             gotoxy(history[i].x, history[i].y); //좌표 이동
+                             gotoxy(history[i].x, history[i].y); //i번째 기록의 좌표로 이동
                              putch(history[i].ch); //기록된 문자 출력
                              usleep(history[i].delay); //딜레이
                         }
@@ -331,8 +368,9 @@ void make()
                         break;
                      }
                      else{
+                        // 그린 그림이 아무것도 없을때
                          prxy(45, 20, "No drawing history! press any key");
-                         getch();
+                         getch(); // 아무 키 눌러 넘어가기
                          cls();
                          mon();
                          gotoxy(nowx, nowy);
@@ -345,7 +383,7 @@ void make()
                      exit(0);
                      break;
 
-        case 'x'   : exit(0);
+        case 'x'   : exit(0); // 즉시 종료
 
 		case 's'   : filesave(nowx,nowy); // 저장
                      break;
@@ -366,14 +404,14 @@ void make()
                      nowy=whereY;
                      picx=0;
                      picy=0;
-		     drawing_count = 0; //replay 기록 초기화
+		             drawing_count = 0; //replay 기록 초기화
                      gotoxy(nowx,nowy); // 커서 시작 위치로 이동
                      prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
                      }
                      break;
 	
 
-	default    : gotoxy(nowx,nowy);
+	default    : gotoxy(nowx,nowy); // 커서 제자리로
                      /*putch(go);*/
                      break;
             }
@@ -396,43 +434,53 @@ void make()
     사용법
     - s: 저장 / q: 저장 후 종료 / 프로그램 실행 시 저장된 파일 불러오기(y/n)
 */
-void filesave(int nowx,int nowy)
+void filesave(int nowx,int nowy) // 파일 저장 선택 및 실행
 {
     int yn;
 	prxy(45,22,"Save with \" \' \" or now (y/n/q): ");
-	yn=getch();
+	yn=getch(); // y/n/q 중 하나 입력 받기
 	prxy(45,22,"                                        ");
-	if(yn=='y'){
-	filewrite1();gotoxy(nowx,nowy);}
-    else if(yn=='n'){
-	filewrite2();gotoxy(nowx,nowy);}
-	else {gotoxy(nowx,nowy);}
+	if(yn=='y'){ // 'y' 입력시 filewrite1() 방식으로 저장
+	filewrite1();gotoxy(nowx,nowy);} // 파일 저장, 커서 복귀
+    else if(yn=='n'){ // 'n' 입력시 filewrite2() 방식으로 저장
+	filewrite2();gotoxy(nowx,nowy);} // 파일 저장, 커서 복귀
+	else {gotoxy(nowx,nowy);} // 그 외는 그냥 복귀
 }
 
+// 파일 저장 - 따옴표 포함
 void filewrite1()
 {
      FILE *fp;
      char filename[10],buff[20],buff2[100];
      int tempx,tempy;
+
+    // 저장할 파일 이름 입력
      prxy(45,22,"File Name:");
      scanf("%s",filename);
      sprintf(buff,"%s",filename);
-     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
-     putc('{',fp);
+
+     // 파일 열기
+     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);} // 파일 열기 실패시 에러 표시
+     putc('{',fp); // 파일 시작 표시(구분)
      putc('\n',fp);
+
+     // picture 배열의 모든 데이터를 파일에 기록
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
-            fprintf(fp, "'%c'", picture[tempy][tempx]); // fprintf로 '저장
-            if(tempx != longx - 1){ // , 찍기
+            fprintf(fp, "'%c'", picture[tempy][tempx]); // fprintf로 따옴표(' ')로 감싸 저장
+            if(tempx != longx - 1){ // 마지막 열이 아닐때 , 찍기
                 putc(',', fp);
             }
         }
-        putc('\n',fp);
+        putc('\n',fp); // 행 줄바꿈
      }
-     putc('}',fp);putc(';',fp);
-     fclose(fp);
+
+     putc('}',fp);putc(';',fp); // 파일 끝 구분자
+     fclose(fp); // 파일 닫기
+
+     // saveinfo 파일 기록
      FILE *info_fp = fopen("saveinfo", "w"); // 불러오기 위한 정보 저장
      if (info_fp != NULL) {
          fprintf(info_fp, "%s\n", filename); // 파일명
@@ -443,30 +491,38 @@ void filewrite1()
 	 prxy(45,22,"                         ");
 }
 
+// 파일저장 - 단순 문자
 void filewrite2()
 {
      FILE *fp;
      char filename[10],buff[20],buff2[100];
      int tempx,tempy;
+
+     // 파일 입력 
      prxy(45,22,"File Name:");
      scanf("%s",filename);
      sprintf(buff,"%s",filename);
-     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);}
+
+     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);} // 파일 열기 실패시 오류 표시
      putc('{',fp);
      putc('\n',fp);
+
+     // picture 배열 내용 - 단순 문자로 저장
      for(tempy=0;tempy<longy;tempy++)
      {
         for(tempx=0;tempx<longx;tempx++)
         {
             putc(picture[tempy][tempx], fp); // putc로 그림만 저장
             if(tempx != longx - 1){
-                putc(',', fp);
+                putc(',', fp); // 구분용 , 추가
             }
         }
         putc('\n',fp);
      }
-     putc('}',fp);putc(';',fp);
+     putc('}',fp);putc(';',fp); // 파일 끝 구분자
 	 fclose(fp);
+
+     // saveinfo 파일 기록
      FILE *info_fp = fopen("saveinfo", "w"); // 불러오기 위한 정보 저장
      if (info_fp != NULL) {
          fprintf(info_fp, "%s\n", filename); // 파일명
@@ -477,9 +533,10 @@ void filewrite2()
 	 prxy(45,22,"                         ");
 }
 
+// 파일 불러오기 (형식 1, 2)
 int fileload(char* filename, int format) {
     FILE *fp = fopen(filename, "r"); // saveinfo에서 읽어온 파일명
-    if (fp == NULL) { // 파일 열기 실패
+    if (fp == NULL) { // 파일 열기 실패시 오류 메세지
         prxy(10, 9, "Error: Cannot open file.");
         sleep(1);
         return 0;
@@ -500,7 +557,7 @@ int fileload(char* filename, int format) {
     for(tempy=0; tempy<longy; tempy++) {
         for(tempx=0; tempx<longx; tempx++) {
             
-            if (format == 1) { // filewrite1 형식 ,와 ''
+            if (format == 1) { // filewrite1 형식 ,와 따옴표('')
                 // 여는 따옴표(') 찾기
                 while((c = fgetc(fp)) != EOF && (c != '\'')); // ' 만날때까지
                 if (c == EOF) { fclose(fp); return 0; }
@@ -514,27 +571,33 @@ int fileload(char* filename, int format) {
                 while((c = fgetc(fp)) != EOF && (c != '\'')); // ' 만날떄까지
                 if (c == EOF) { fclose(fp); return 0; }
 
-            } else { // filewrite2 형식 ,만 존재
+            } else { // filewrite2 형식 ,만 존재 (문자 그대로)
                 c = fgetc(fp);
                 if (c == EOF) { fclose(fp); return 0; }
                 picture[tempy][tempx] = (char)c;
             }
 
-            // , 건너뛰기
+            // ,(콤마) 건너뛰기
             if(tempx != longx - 1) {
                 while((c = fgetc(fp)) != EOF && (c != ','));
                 if (c == EOF) { fclose(fp); return 0; }
             }
         }
-        // \n 건너뛰기
+        // 줄바꿈('\n') 건너뛰기
         while((c = fgetc(fp)) != EOF && (c != '\n'));
         if (c == EOF && tempy < longy - 1) { fclose(fp); return 0; } // 파일이 중간에 끝남
     }
     
-    fclose(fp);
+    fclose(fp); // 파일 닫기
     return 1; // 불러오기 성공
 }
 
+/*
+  mon()
+
+  - 격자와 메뉴, picture[][]의 복원 출력
+  - 격자 ','로 표시, ',' 위에 그림을 덮어쓰지 않음
+*/
 void mon() /* 메뉴 화면 출력 */
 {
     int x,y,tempy,myx,myy;
@@ -552,10 +615,11 @@ void mon() /* 메뉴 화면 출력 */
               - 열 : x는 2칸 간격 (3, 5, 7...)
             */
             gotoxy(x, whereY + y);
-            putch(',');
+            putch(','); // 격자 표시 문자
         }
     }
     
+    // picture 배열 복원
     for(int tempy = 0; tempy < longy; tempy++) // y좌표
     {
         for(int tempx = 0; tempx < longx; tempx++) // x좌표
@@ -571,8 +635,8 @@ void mon() /* 메뉴 화면 출력 */
                 // 화면 Y좌표 계산
                 int screen_y = whereY + tempy;
 
-                gotoxy(screen_x, screen_y);
-                putch(m);
+                gotoxy(screen_x, screen_y); // 계산된 위치로 커서 이동
+                putch(m); // 문자 출력
             }
         }
     }
