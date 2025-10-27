@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <ctype.h>
 
 void clrscr() {
     printf("\033[2J\033[1;1H");
