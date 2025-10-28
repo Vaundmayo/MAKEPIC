@@ -192,18 +192,22 @@ int main()
                 // 크기 범위가 잘못되었으면 로드 시도 X
                 longx = 10; longy = 10;
             } else {
+                textcolor(11);
                 prxy(10, 5, "Last saved file found: "); // 파일 찾았을때 메시지
                 cprintf("%s (%dx%d)", last_filename, longx, longy); // 파일에서 파일명,크기 읽어 옴
+                textcolor(15);
                 prxy(10, 6, "Load this file? (y/n): "); // 불러올지 선택
                 
                 sel = getch(); // 선택지 받아오기
                 
                 if (sel == 'y' || sel == 'Y') { // y 입력시 fileload 함수 실행
                     if (fileload(last_filename, last_format)) {
+                        textcolor(10);
                         prxy(10, 8, "File loaded successfully!"); // 성공 메시지
                         sleep(1);
                         loaded = 1; // 로드 성공 했으므로 초기 입력 메뉴 생략
                     } else {
+                        textcolor(9);
                         prxy(10, 8, "Failed to load file. Starting new drawing."); // 실패 메시지
                         longx = 10; longy = 10; // 크기 기본값으로 리셋
                         sleep(1);
@@ -231,7 +235,9 @@ int main()
             fgets(buffer, sizeof(buffer), stdin);
             buffer[strcspn(buffer, "\n")] = '\0'; // 개행 문자('\n') 제거 -> 순수 문자열만 남김
             if(!valid_int(buffer)) { // 입력이 숫자로만 이루어졌는지 검사
+                textcolor(9);
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메시지 출력
+                textcolor(11);
                 prxy(45,10,"How many count for x(1~20):             "); // 입력란 초기화
                 continue; // 다시 입력 받기
             }
@@ -243,7 +249,9 @@ int main()
             fgets(buffer, sizeof(buffer), stdin);
             buffer[strcspn(buffer, "\n")] = '\0'; // 개행 제거
             if(!valid_int(buffer)) { // 입력이 숫자로만 이루어졌는지 검사
+                textcolor(9);
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
+                textcolor(11);
                 prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
                 prxy(45,11,"                                        "); // y 입력 칸 비우기
                 continue; // 다시 입력 받기
@@ -255,7 +263,9 @@ int main()
                 break; // 정상 입력시 반복문 종료
             }
             else{
+                textcolor(9);
                 prxy(45,12,"Invalid number. Please try again."); // 오류 메세지 출력
+                textcolor(11);
                 prxy(45,10,"How many count for x(1~20):             "); // x 입력 칸 비우기
                 prxy(45,11,"                                        "); // y 입력 칸 비우기
             }
@@ -353,10 +363,12 @@ void make()
                     // replay(리플레이)
         case 'p' :   if(drawing_count != 0){ // 입력이 있었을 때
                      cls(); // 화면 지우기
+                     textcolor(11);
                      prxy(45, 20, "replay start");
 
 			         int x, y;
 			         int myx = (2*longx) + whereX;
+                     textcolor(15);
 			         for(x = whereX; x < myx-2; x = x+2) {
 			             for(y = 0; y < longy; y++) {
 				         gotoxy(x, whereY + y);
@@ -380,13 +392,16 @@ void make()
 	                    }
 			        }
 			         // 불러오기 이후 history 기록 재생
+                     textcolor(11);
 			         for(int i = 0;i<drawing_count;i++){
 				     gotoxy(history[i].x, history[i].y); // i번째 기록 좌표로 이동
 				     putch(history[i].ch); // 기록된 문자출력
 				     usleep(history[i].delay); // 지정된 시간만큼 대기
 			         }
                      prxy(45, 20, "                    ");
-                     prxy(45, 20, "replay complete! press any key");
+                     textcolor(10);
+                     prxy(45, 20, "replay complete! Press any key");
+                     textcolor(15);
                      getch(); // 키 입력
                      cls();
                      mon();
@@ -395,7 +410,9 @@ void make()
                      }
 
                      else{ // 그린 그림이 아무것도 없을때
-                         prxy(45, 20, "No drawing history! press any key");
+                         textcolor(9);
+                         prxy(45, 20, "No drawing history! Press any key");
+                         textcolor(15);
                          getch(); // 아무 키 눌러 넘어가기
                          cls();
                          mon();
@@ -429,8 +446,14 @@ void make()
                      picx=0;
                      picy=0;
 		             drawing_count = 0; // replay 기록 초기화
+                     textcolor(10);
+                     prxy(45, 20, "Picture reset complete. Press any key"); // 초기화 완료 메시지
+                     textcolor(15);
+                     getch();
+                     prxy(45, 20, "                           "); // 메시지 지우기
+                     cls();
+                     mon();
                      gotoxy(nowx,nowy); // 커서 시작 위치로 이동
-                     prxy(45, 20, "Picture reset complete."); // 초기화 완료 메시지
                      }
                      break;
 	
@@ -484,7 +507,12 @@ void filewrite1()
      sprintf(buff,"%s",filename);
 
      // 파일 열기
-     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);} // 파일 열기 실패시 에러 표시
+     if((fp=fopen(buff,"w+t"))==NULL){
+        textcolor(9);
+        prxy(45,20,"File open error");
+        textcolor(15);
+        exit(0);
+    } // 파일 열기 실패시 에러 표시
      putc('{',fp); // 파일 시작 표시(구분)
      putc('\n',fp);
 
@@ -527,7 +555,11 @@ void filewrite2()
      scanf("%s",filename);
      sprintf(buff,"%s",filename);
 
-     if((fp=fopen(buff,"w+t"))==NULL){prxy(45,20,"File open error");exit(0);} // 파일 열기 실패시 오류 표시
+     if((fp=fopen(buff,"w+t"))==NULL){
+        textcolor(9);
+        prxy(45,20,"File open error");
+        textcolor(15);
+        exit(0);} // 파일 열기 실패시 오류 표시
      putc('{',fp);
      putc('\n',fp);
 
